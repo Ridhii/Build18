@@ -6,10 +6,11 @@ def image():
     row,col = im.size
     data = np.zeros([row,col])
     pixels = im.load
+    pix = list(im.getdata())
     for i in range(row):
-    	for j in range(col):
-    		print pixels[i,j]
-		    #data[i,j] = pixels[i,j]
+     	for j in range(col):
+            #print pix[i*col +j]
+		    data[i][j] = (pix[i*col + j])
     return None 
 
 image()
