@@ -44,9 +44,9 @@ def main():
             if (not frame.is_valid): break
             if (frame.is_valid):
                 for gesture in frame.gestures():
-                    # if((i== 0) and (gesture.type is Leap.Gesture.TYPE_SWIPE)):
-                    #     swipe = Leap.SwipeGesture(gesture)
-                    #     print "                    SWIPE "
+                    if((i == 0) and (gesture.type is Leap.Gesture.TYPE_SWIPE)):
+                        swipe = Leap.SwipeGesture(gesture)
+                        print "                    SWIPE "
                     if(gesture.is_valid and (gesture.type is Leap.Gesture.TYPE_SCREEN_TAP)):
                         if (gesture.id != previousTapID):
                             screenTap = Leap.ScreenTapGesture(gesture)
@@ -64,23 +64,24 @@ def main():
     return None
 
 def selectTile(screenTap):
-    screenWidth = 35.5 * 10
-    screenHeight = 27 * 10
-    numRows = 3
+    screenWidth = 32 * 10
+    screenHeight = 32 * 10
+    numRows = 4
     numCols = 4
 
     tileWidth = screenWidth/numCols
     tileHeight = screenHeight/numRows
 
-    screenYoffset = 0
-    screenXoffset = - (17.75 * 10)
+    screenYoffset = 9 * 10
+    screenXoffset = - (16 * 10)
 
     x = screenTap.position.x
     y = screenTap.position.y
 
     tileY = numRows - int((y - screenYoffset)/tileHeight) -1
     tileX = int((x - screenXoffset)/tileWidth) 
-
+    
+    print (tileX, tileY)
     return (tileX, tileY)
 
 def isValid(blankInd, (tileX, tileY)):
@@ -188,47 +189,48 @@ def image():
     scIm.save("scIm.jpg")
     hgIm = highlightOnSelect(3,3,scIm)
     #hgIm.show()
-    hgIm.save("hgIm.jpg")
+    hgIm.save("hgIm1.jpg")
 
     blankInd = 12
 
     (newList, blankInd) = move(blankInd, (3, 3), sList)
 
     movedIm = scrambleImage(tileList,im, newList)
-    movedIm.save("movedIm.jpg")
+    movedIm.save("movedIm1.jpg")
     print blankInd
 
     hgIm = highlightOnSelect(2,3, movedIm)
     #hgIm.show()
-    hgIm.save("hgIm.jpg")
+    hgIm.save("hgIm2.jpg")
 
-    (newList, blankInd) = move(blankInd, (2, 3), sList)
+    (newList, blankInd) = move(blankInd, (2, 3), newList)
 
     movedIm = scrambleImage(tileList,im, newList)
-    movedIm.save("movedIm.jpg")
+    movedIm.save("movedIm2.jpg")
+    #movedIm.show()
     print blankInd
 
     hgIm = highlightOnSelect(2,1, movedIm)
     #hgIm.show()
-    hgIm.save("hgIm.jpg")
+    hgIm.save("hgIm3.jpg")
 
-    (newList, blankInd) = move(blankInd, (2, 1), sList)
+    (newList, blankInd) = move(blankInd, (2, 1), newList)
 
     movedIm = scrambleImage(tileList,im, newList)
-    movedIm.save("movedIm.jpg")
+    movedIm.save("movedIm3.jpg")
+    #movedIm.show()
     print blankInd
 
     hgIm = highlightOnSelect(2,2, movedIm)
     #hgIm.show()
-    hgIm.save("hgIm.jpg")
+    hgIm.save("hgIm4.jpg")
 
-    (newList, blankInd) = move(blankInd, (2, 2), sList)
+    (newList, blankInd) = move(blankInd, (2, 2), newList)
 
     movedIm = scrambleImage(tileList,im, newList)
-    movedIm.save("movedIm.jpg")
+    movedIm.save("movedIm4.jpg")
+    #movedIm.show()
     print blankInd
-
-    tileList[6].save("tile6.jpg")
 
     return None
 
@@ -354,5 +356,5 @@ def highlightOnSelect(tileX,tileY,im):
 
 
 
-image()
-#main()
+#image()
+main()
