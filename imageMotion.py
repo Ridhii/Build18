@@ -207,8 +207,8 @@ def scrambleImage(tileList,im,scList):
 def highlightOnSelect(tileX,tileY,im):
     width,height = im.size
     inc = height/4
-    startX = tileY * inc  #(2I)
-    startY  = tileX * inc  #(I)
+    startX = tileX * inc  #(I)
+    startY  = tileY * inc  #(2I)
     endX = startX + inc
     endY = startY + inc
     
@@ -221,7 +221,7 @@ def highlightOnSelect(tileX,tileY,im):
     
     # highlight both horizontal 
     # sides of the tile
-    startX = tileY * inc
+    startX = tileX * inc
     while(startY < endY):
         for x in xrange(inc):
             im.putpixel((startX + x, startY), (255,255,255))
