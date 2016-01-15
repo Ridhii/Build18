@@ -1,9 +1,9 @@
 from PIL import Image
 import numpy as np
-import os, sys, inspect, thread, time, math, random, socket
+import os, sys, inspect, thread, time, math
 
 import Leap
-from Leap import CircleGesture, KeyTapGesture, ScreenTapGesture, SwipeGesture
+from Leap import CircleGesture, KeyTapGesture, ScreenTapGesture, SwipeGesture 
 
 # Assuming we get an image of size 64X64
 
@@ -12,74 +12,28 @@ left15  = 48
 bottom15 = 64
 right15  = 64
 
-currentState = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-tileList = []
-
-sLists = [([3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12], 12),
-         ([1,3,2,0,7,5,4,6,9,8,11,10,13,12,15,14], 14),
-         ([3,1,0,2,5,7,6,4,9,8,11,10,13,15,14,12], 13),
-         ([2,1,3,0,5,4,7,6,9,11,10,8,14,12,13,15], 15),
-         ([2,0,1,3,6,4,5,7,9,8,11,10,15,13,12,14], 12),
-         ([1,0,3,2,6,5,7,4,10,11,8,9,14,13,15,12], 14)]
-
+sList = [3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13 ,12]
 
 
 def main():
-
-    #initialize the leap and stuff
     controller = Leap.Controller()
     while(not(controller.is_connected)): continue
-    # print "connected"
+    print "connected"
     enable_swipe(controller)
     enable_screentap(controller)
-
-    startNewGame(controller)
-
-
-def startNewGame(controller):
-    
-    global currentState
-    global tileList
-    im  = Image.open("flanders.gif")
-    #im = blacken15(im)
-    # print "here haha"
-    generateTileList(im)
-    # print "here"
-    imO =  makeImage()
-
-
-
-    sendImage(imO)
-
-    time.sleep(5)
-
-
-    randIndex = random.randint(0, len(sLists)-1)
-    (currentState, blankInd) = sLists[randIndex]
-    #get the start game thing
-    #print (currentState, blankInd)
-    
-    scIm = makeImage()
-
-    #scIm.show()
-    #scrambled image
-    scIm.save("scIm.gif")
-
-### HOPEFULLY IM HAS NOT CHANGED NOW
-
-    sendImage(scIm)
-
-    #get gestures
     lastFrameID = -1
     previousTapID = -1
     previousTapreached = False
-
     while(True):
-        
-        #Get new frame
+        # frame = controller.frame()
+        # if(frame.is_valid):
+        #     print frame.id
+        #     for gesture in frame.gestures():
+        #         if(gesture.type is Leap.Gesture.TYPE_SWIPE):
+        #             swipe = Leap.SwipeGesture(gesture)
+        #             print "                    SWIPE "
 
         thisFrame = controller.frame()
-        #print 'f'
         
         maxHistory = 60
 
@@ -90,56 +44,48 @@ def startNewGame(controller):
             if (not frame.is_valid): break
             if (frame.is_valid):
                 for gesture in frame.gestures():
-                    if((i == 0) and (gesture.type is Leap.Gesture.TYPE_SWIPE)):
-                        swipe = Leap.SwipeGesture(gesture)
-                        #print "                    SWIPE "
-                        resetGame(controller)
-                        break
-                        return None
-
-                        ###RESET
+                    # if((i== 0) and (gesture.type is Leap.Gesture.TYPE_SWIPE)):
+                    #     swipe = Leap.SwipeGesture(gesture)
+                    #     print "                    SWIPE "
                     if(gesture.is_valid and (gesture.type is Leap.Gesture.TYPE_SCREEN_TAP)):
                         if (gesture.id != previousTapID):
                             screenTap = Leap.ScreenTapGesture(gesture)
-                            previousTapID = gesture.id
-                            print "SCREEN_TAP"
-                            #handleTap(screenTap, blankInd)
-                            break
-
+                            tapper = screenTap.pointable
+                            if (tapper.is_finger):
+                                finger = Leap.Finger(tapper)
+                                if (finger.is_valid and finger.type == 1):
+                                    previousTapID = gesture.id
+                                    print "SCREEN_TAP"
+                                    selectTile(screenTap)
                         else:
                             previousTapreached = True
                 if (previousTapreached): break
 
-            lastFrameID = thisFrame.id          
+            lastFrameID = thisFrame.id
+
+            
 
     return None
 
-
-
-def resetGame(controller):
-    
-    startNewGame(controller)
-
-
 def selectTile(screenTap):
-    screenWidth = 32 * 10
-    screenHeight = 32 * 10
-    numRows = 4
+    screenWidth = 35.5 * 10
+    screenHeight = 27 * 10
+    numRows = 3
     numCols = 4
 
     tileWidth = screenWidth/numCols
     tileHeight = screenHeight/numRows
 
-    screenYoffset = 8 * 10
-    screenXoffset = - (16 * 10)
+    screenYoffset = 0
+    screenXoffset = - (17.75 * 10)
 
     x = screenTap.position.x
     y = screenTap.position.y
 
     tileY = numRows - int((y - screenYoffset)/tileHeight) -1
     tileX = int((x - screenXoffset)/tileWidth) 
-    
-    print (tileX, tileY)
+
+    print tileX, tileY
     return (tileX, tileY)
 
 def isValid(blankInd, (tileX, tileY)):
@@ -149,43 +95,15 @@ def isValid(blankInd, (tileX, tileY)):
 
     blankX = blankInd % 4
     blankY = int(blankInd / 4)
-    
-    #print "in is Valid", blankInd
 
     correctCol = (tileX == blankX)
     correctRow = (tileY == blankY)
 
     isBlankTile = correctCol and correctRow
-    isValid = ((not isBlankTile) and (correctRow or correctCol))
-    print isValid
-
+    
     return ((not isBlankTile) and (correctRow or correctCol))
 
-def handleTap(screenTap, blankInd):
-    
-    global currentState
-    global tileList
-    (tileX, tileY) = selectTile(screenTap)
-    if (isValid(blankInd, (tileX, tileY))):
-
-        oldIm = makeImage()
-        sendImage(oldIm, tileX, tileY)
-
-        time.sleep(2)
-
-        ##animation stuff here later later
-
-        blankInd = move(blankInd, (tileX, tileY))
-        newIm = makeImage()
-        sendImage(newIm)
-        if(currentState == sorted(currentState)):
-            winIm = Image.open("win.gif")
-            sendImage(winIm)
-
-
-def move(blankInd, (tileX, tileY)):
-    global currentState
-    global tileList
+def move(blankInd, (tileX, tileY), currentState):
     blankX = blankInd % 4
     blankY = int(blankInd / 4)
 
@@ -238,55 +156,88 @@ def move(blankInd, (tileX, tileY)):
 
     ######### UPDATE BLANK INDEX GLOBAL OR PASS AROUND
     ## Both currentState and blankInd have changed so pass them back 
-    return blankInd
+    return (currentState, blankInd)
 
 
 def enable_swipe(controller):
-    #print "on_connect"
+    print "on_connect"
     controller.enable_gesture(Leap.Gesture.TYPE_SWIPE)
-    controller.config.set("Gesture.Swipe.MinLength", 200.0)
-    controller.config.set("Gesture.Swipe,MinVelocity", 600)
+    controller.config.set("Gesture.Swipe.MinLength", 100.0)
+    controller.config.set("Gesture.Swipe,MinVelocity", 400)
     controller.config.save()
 
 def enable_screentap(controller):
     print "enabling_tap"
     controller.enable_gesture(Leap.Gesture.TYPE_SCREEN_TAP)
-    controller.config.set("Gesture.ScreenTap.MinForwardVelocity", 35.0) #15
+    controller.config.set("Gesture.ScreenTap.MinForwardVelocity", 15.0)
     controller.config.set("Gesture.ScreenTap.HistorySeconds", 0.5)
-    controller.config.set("Gesture.ScreenTap.MinDistance", 1.0) #0.5
+    controller.config.set("Gesture.ScreenTap.MinDistance", 0.5)
     controller.config.save()
 
-def sendImage(im, hx = -1, hy = -1):
+def image():
+    im  = Image.open("Image_2.jpg")
+    row,col = im.size   # row = x, col = y
+    data = [ ([0] * col) for row in xrange(row)]
+    pixels = im.load
+    pix = list(im.getdata())
+    for i in range(row):
+        for j in range(col):
+            data[i][j] = (pix[i*col + j])
 
-    newIm = putBorders((im))
-    newIm = im
-    if (hx >= 0) and (hy >= 0):
-        newIm = highlightOnSelect(hx, hy, newIm)
-
-    #actually send it now
+    newIm = putBorders(blacken15(im))
+    newIm.save("newIm.jpg")
     #newIm.show()
-    
-    print "start sending"
-    s = socket.socket()         # Create a socket object
-    host = "dreamteam.wv.cc.cmu.edu" # Get local machine name
-    port = 12340                # Reserve a port for your service.
+    tileList = getTileList(newIm)
+    scIm = scrambleImage(tileList,im,sList)
+    #scIm.show()
+    scIm.save("scIm.jpg")
+    hgIm = highlightOnSelect(3,3,scIm)
+    #hgIm.show()
+    hgIm.save("hgIm.jpg")
 
-    s.connect((host, port))
-    print ("connected to host")
-    
-    newIm.save('currentIm.gif')
-    f = open('currentIm.gif','rb')
+    blankInd = 12
 
-    l = f.read()
-    s.send(l)
-    s.send('')
-    f.close()
-    print "Done Sending"
-    s.close
-    
+    (newList, blankInd) = move(blankInd, (3, 3), sList)
+
+    movedIm = scrambleImage(tileList,im, newList)
+    movedIm.save("movedIm.jpg")
+    print blankInd
+
+    hgIm = highlightOnSelect(2,3, movedIm)
+    #hgIm.show()
+    hgIm.save("hgIm.jpg")
+
+    (newList, blankInd) = move(blankInd, (2, 3), sList)
+
+    movedIm = scrambleImage(tileList,im, newList)
+    movedIm.save("movedIm.jpg")
+    print blankInd
+
+    hgIm = highlightOnSelect(2,1, movedIm)
+    #hgIm.show()
+    hgIm.save("hgIm.jpg")
+
+    (newList, blankInd) = move(blankInd, (2, 1), sList)
+
+    movedIm = scrambleImage(tileList,im, newList)
+    movedIm.save("movedIm.jpg")
+    print blankInd
+
+    hgIm = highlightOnSelect(2,2, movedIm)
+    #hgIm.show()
+    hgIm.save("hgIm.jpg")
+
+    (newList, blankInd) = move(blankInd, (2, 2), sList)
+
+    movedIm = scrambleImage(tileList,im, newList)
+    movedIm.save("movedIm.jpg")
+    print blankInd
+
+    tileList[6].save("tile6.jpg")
+
+    return None
 
 def putBorders(im):
-
     width,height = im.size   
     inc = height/4
     # putting borders vertically
@@ -302,21 +253,30 @@ def putBorders(im):
             im.putpixel((x,startY),(0,0,0))
         startY += inc
     return im
-
     
+def blacken15(im):
+    width,height = im.size
+    # square images only
+    inc = height/4
+    x0 = width - inc
+    y0 = height - inc
+    x1 = width
+    y1 = height
+    tile15 = (x0,y0,x1,y1)
+    region = im.crop(tile15)
+    row,col = region.size
+    for i in range (row):
+        for j in range(col):
+            region.putpixel((i,j), (0,0,0))
+    im.paste(region,tile15)
+    return im
 
-def generateTileList(im):
-    global tileList
+def getTileList(im):
     x0 = 0
     y0 = 0
     width,height = im.size
     inc = height/4
     tileList = [ 0 for i in range(16)]
-    myIm = Image.new('RGB', (16,16))
-    for x in range(16):
-        for y in range(16):
-            myIm.putpixel((x,y),(0,0,0))
-
     i = 0
     # go vertically
     while(y0 < height):
@@ -330,29 +290,25 @@ def generateTileList(im):
             x0 += inc
         x0 = 0
         y0 += inc
+    return tileList
 
-    tileList[15] = myIm
-    return None
-
-def makeImage():
-    global currentState
-    global tileList
+def scrambleImage(tileList,im,scList):
+    
     # tileList = a list representing the current
     # tiles in form of a list. Each tile is a 
     # sub-image of 16X16
     # scList is the list of indices reprsenting the 
     # order of tiles to appear in the scrambled image
-    (width,height) = (64, 64)
+    width,height = im.size
     x0 = 0
     y0 = 0
     inc = height/4
     # pasting on an empty image
     im = Image.new('RGB', (width,height))
     # pasting tiles row-wise
-    #print "current statetetete" , currentState
-    for i in range(len(currentState)):
+    for i in range(len(scList)):
         # getting the index
-        index = currentState[i]
+        index = scList[i]
         # getting the tile to paste
         tile = tileList[index]
         if(x0 == 3*inc):
@@ -368,7 +324,6 @@ def makeImage():
             box = (x0,y0,x1,y1)
             im.paste(tile,box)
             x0 += inc
-
     return im
 
 def highlightOnSelect(tileX,tileY,im):
@@ -395,6 +350,11 @@ def highlightOnSelect(tileX,tileY,im):
         startY += inc - 1
         
     return im
+
+
+
+
+  
 
 
 
