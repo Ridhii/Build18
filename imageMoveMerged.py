@@ -40,7 +40,7 @@ def startNewGame(controller):
     
     global currentState
     global tileList
-    im  = Image.open("Image_2.jpg")
+    im  = Image.open("flanders.gif")
     im = blacken15(im)
     generateTileList(im)
 
@@ -58,7 +58,7 @@ def startNewGame(controller):
 
     #scIm.show()
     #scrambled image
-    scIm.save("scIm.jpg")
+    scIm.save("scIm.gif")
 
 ### HOPEFULLY IM HAS NOT CHANGED NOW
 
@@ -253,15 +253,16 @@ def sendImage(im, hx = -1, hy = -1):
     #actually send it now
     newIm.show()
     
-    '''
+    print "start sending"
     s = socket.socket()         # Create a socket object
     host = "dreamteam.wv.cc.cmu.edu" # Get local machine name
     port = 12340                # Reserve a port for your service.
 
     s.connect((host, port))
+    print ("connected to host")
     
-    newIm.save('currentIm.jpg')
-    f = open('currentIm.jpg','rb')
+    newIm.save('currentIm.gif')
+    f = open('currentIm.gif','rb')
 
     l = f.read()
     s.send(l)
@@ -269,10 +270,10 @@ def sendImage(im, hx = -1, hy = -1):
     f.close()
     print "Done Sending"
     s.close
-    '''
+    
 
 def image():
-    im  = Image.open("Image_2.jpg")
+    im  = Image.open("Image_2.gif")
     row,col = im.size   # row = x, col = y
     data = [ ([0] * col) for row in xrange(row)]
     pixels = im.load
@@ -282,13 +283,13 @@ def image():
             data[i][j] = (pix[i*col + j])
 
     newIm = putBorders(blacken15(im))
-    newIm.save("newIm.jpg")
+    newIm.save("newIm.gif")
     #newIm.show()
     tileList = generateTileList(newIm)
     randIndex = random.randint(0, len(sLists))
     scIm = scrambleImage(tileList,im,sLists[randIndex])
     #scIm.show()
-    scIm.save("scIm.jpg")
+    scIm.save("scIm.gif")
 
 
 
@@ -370,12 +371,17 @@ def blacken15(im):
     x1 = width
     y1 = height
     tile15 = (x0,y0,x1,y1)
-    region = im.crop(tile15)
-    row,col = region.size
-    for i in range (row):
-        for j in range(col):
-            region.putpixel((i,j), (0,0,0))
-    im.paste(region,tile15)
+    myIm = Image.new('RGB', (16,16))
+    for x in range(16):
+        for y in range(16):
+            myIm.putpixel((x,y),(0,0,0))
+
+    # region = im.crop(tile15)
+    # row,col = region.size
+    # for i in range (row):
+    #     for j in range(col):
+    #         region.putpixel((i,j), (0,0,0))
+    im.paste(myIm,tile15)
     return im
 
 def generateTileList(im):
