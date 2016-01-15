@@ -12,7 +12,7 @@ left15  = 48
 bottom15 = 64
 right15  = 64
 
-currentState = []
+currentState = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
 tileList = []
 
 sLists = [([3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12], 12),
@@ -41,11 +41,16 @@ def startNewGame(controller):
     global currentState
     global tileList
     im  = Image.open("flanders.gif")
-    im = blacken15(im)
+    #im = blacken15(im)
+    print "here haha"
     generateTileList(im)
+    print "here"
+    imO =  makeImage()
+    imO.show()
 
 
-    sendImage(im)
+
+    #sendImage(imO)
 
     time.sleep(5)
 
@@ -62,7 +67,7 @@ def startNewGame(controller):
 
 ### HOPEFULLY IM HAS NOT CHANGED NOW
 
-    sendImage(scIm)
+    #sendImage(scIm)
 
     #get gestures
     lastFrameID = -1
@@ -165,9 +170,11 @@ def handleTap(screenTap, blankInd):
         ##animation stuff here later later
 
         blankInd = move(blankInd, (tileX, tileY))
-        
         newIm = makeImage(tileList, currentState)
         sendImage(newIm)
+        if(currentState == sorted(currentState)):
+            winIm = Image.open("win.gif")
+            sendImage(winIm)
 
 
 def move(blankInd, (tileX, tileY)):
@@ -253,95 +260,24 @@ def sendImage(im, hx = -1, hy = -1):
     #actually send it now
     newIm.show()
     
-    print "start sending"
-    s = socket.socket()         # Create a socket object
-    host = "dreamteam.wv.cc.cmu.edu" # Get local machine name
-    port = 12340                # Reserve a port for your service.
+    # print "start sending"
+    # s = socket.socket()         # Create a socket object
+    # host = "dreamteam.wv.cc.cmu.edu" # Get local machine name
+    # port = 12340                # Reserve a port for your service.
 
-    s.connect((host, port))
-    print ("connected to host")
+    # s.connect((host, port))
+    # print ("connected to host")
     
-    newIm.save('currentIm.gif')
-    f = open('currentIm.gif','rb')
+    # newIm.save('currentIm.gif')
+    # f = open('currentIm.gif','rb')
 
-    l = f.read()
-    s.send(l)
-    s.send('')
-    f.close()
-    print "Done Sending"
-    s.close
+    # l = f.read()
+    # s.send(l)
+    # s.send('')
+    # f.close()
+    # print "Done Sending"
+    # s.close
     
-
-def image():
-    im  = Image.open("Image_2.gif")
-    row,col = im.size   # row = x, col = y
-    data = [ ([0] * col) for row in xrange(row)]
-    pixels = im.load
-    pix = list(im.getdata())
-    for i in range(row):
-        for j in range(col):
-            data[i][j] = (pix[i*col + j])
-
-    newIm = putBorders(blacken15(im))
-    newIm.save("newIm.gif")
-    #newIm.show()
-    tileList = generateTileList(newIm)
-    randIndex = random.randint(0, len(sLists))
-    scIm = scrambleImage(tileList,im,sLists[randIndex])
-    #scIm.show()
-    scIm.save("scIm.gif")
-
-
-
-    #testing part
-
-    hgIm = highlightOnSelect(3,3,scIm)
-    #hgIm.show()
-    hgIm.save("hgIm1.jpg")
-
-    blankInd = 12
-
-
-    (newList, blankInd) = move(blankInd, (3, 3), sList)
-
-    movedIm = scrambleImage(tileList,im, newList)
-    movedIm.save("movedIm1.jpg")
-    print blankInd
-
-    hgIm = highlightOnSelect(2,3, movedIm)
-    #hgIm.show()
-    hgIm.save("hgIm2.jpg")
-
-    (newList, blankInd) = move(blankInd, (2, 3), newList)
-
-    movedIm = scrambleImage(tileList,im, newList)
-    movedIm.save("movedIm2.jpg")
-    #movedIm.show()
-    print blankInd
-
-    hgIm = highlightOnSelect(2,1, movedIm)
-    #hgIm.show()
-    hgIm.save("hgIm3.jpg")
-
-    (newList, blankInd) = move(blankInd, (2, 1), newList)
-
-    movedIm = scrambleImage(tileList,im, newList)
-    movedIm.save("movedIm3.jpg")
-    #movedIm.show()
-    print blankInd
-
-    hgIm = highlightOnSelect(2,2, movedIm)
-    #hgIm.show()
-    hgIm.save("hgIm4.jpg")
-
-    (newList, blankInd) = move(blankInd, (2, 2), newList)
-
-    movedIm = scrambleImage(tileList,im, newList)
-    movedIm.save("movedIm4.jpg")
-    #movedIm.show()
-    print blankInd
-
-    return None
 
 def putBorders(im):
 
@@ -362,27 +298,6 @@ def putBorders(im):
     return im
 
     
-def blacken15(im):
-    width,height = im.size
-    # square images only
-    inc = height/4
-    x0 = width - inc
-    y0 = height - inc
-    x1 = width
-    y1 = height
-    tile15 = (x0,y0,x1,y1)
-    myIm = Image.new('RGB', (16,16))
-    for x in range(16):
-        for y in range(16):
-            myIm.putpixel((x,y),(0,0,0))
-
-    # region = im.crop(tile15)
-    # row,col = region.size
-    # for i in range (row):
-    #     for j in range(col):
-    #         region.putpixel((i,j), (0,0,0))
-    im.paste(myIm,tile15)
-    return im
 
 def generateTileList(im):
     global tileList
@@ -391,6 +306,11 @@ def generateTileList(im):
     width,height = im.size
     inc = height/4
     tileList = [ 0 for i in range(16)]
+    myIm = Image.new('RGB', (16,16))
+    for x in range(16):
+        for y in range(16):
+            myIm.putpixel((x,y),(0,0,0))
+
     i = 0
     # go vertically
     while(y0 < height):
@@ -404,6 +324,8 @@ def generateTileList(im):
             x0 += inc
         x0 = 0
         y0 += inc
+
+    tileList[15] = myIm
     return None
 
 def makeImage():
@@ -423,11 +345,12 @@ def makeImage():
     # pasting tiles row-wise
     #print "current statetetete" , currentState
     for i in range(len(currentState)):
-        #print "IN LOOP"
+        print "IN LOOP"
         # getting the index
         index = currentState[i]
         # getting the tile to paste
         tile = tileList[index]
+        tile.show()
         if(x0 == 3*inc):
             x1 = x0 + inc
             y1 = y0 + inc
@@ -468,11 +391,6 @@ def highlightOnSelect(tileX,tileY,im):
         startY += inc - 1
         
     return im
-
-
-
-
-  
 
 
 
